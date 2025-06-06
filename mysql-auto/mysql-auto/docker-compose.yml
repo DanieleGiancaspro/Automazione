@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-auto-compose
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: compro_oro
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+
+  backend:
+    build:
+      context: C:\\Users\\asus\\OneDrive\\Desktop\\ReactNativeProjects\\REACT_NATIVE\\REACT_NATIVE\\Backend\\Compro Oro - Sistema di Gestione Backend\\compro-oro
+    container_name: comprooro-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+
+  frontend:
+    build:
+      context: C:\\Users\\asus\\OneDrive\\Desktop\\ReactNativeProjects\\REACT_NATIVE\\REACT_NATIVE\\ComproOroApp
+    container_name: comprooro-frontend
+    ports:
+      - "8081:8081"
+    depends_on:
+      - backend
+    stdin_open: true
+    tty: true
