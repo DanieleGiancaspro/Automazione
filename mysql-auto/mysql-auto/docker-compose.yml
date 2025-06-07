@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-auto-compose
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: compro_oro
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: C:\\Users\\asus\\OneDrive\\Desktop\\ReactNativeProjects\\REACT_NATIVE\\REACT_NATIVE\\Backend\\Compro Oro - Sistema di Gestione Backend\\compro-oro
+    container_name: comprooro-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/compro_oro?serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=rootpassword
+    command: sh -c "until nc -z mysql 3306; do echo '⏳ Waiting for MySQL...'; sleep 2; done && java -jar app.war"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: C:\\Users\\asus\\OneDrive\\Desktop\\ReactNativeProjects\\REACT_NATIVE\\REACT_NATIVE\\ComproOroApp
+    container_name: comprooro-frontend
+    ports:
+      - "8081:8081"
+    depends_on:
+      - backend
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
